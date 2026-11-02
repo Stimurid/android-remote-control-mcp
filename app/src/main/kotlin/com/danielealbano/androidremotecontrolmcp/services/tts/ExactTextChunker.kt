@@ -6,7 +6,10 @@ package com.danielealbano.androidremotecontrolmcp.services.tts
 object ExactTextChunker {
     const val CHUNK_LIMIT = 220
 
-    fun split(text: String, limit: Int = CHUNK_LIMIT): List<String> {
+    fun split(
+        text: String,
+        limit: Int = CHUNK_LIMIT,
+    ): List<String> {
         require(limit >= 2) { "Chunk limit must be at least 2" }
         if (text.isEmpty()) return emptyList()
         val result = ArrayList<String>()
