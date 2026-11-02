@@ -64,7 +64,7 @@ class ExactTtsController
                 require(text.isNotEmpty()) { "Text must not be empty" }
                 require(text.length <= MAX_LENGTH) { "Text exceeds $MAX_LENGTH UTF-16 characters" }
                 require(language.matches(LANGUAGE_PATTERN)) { "Invalid BCP-47 language tag" }
-                require(rate in 0.5f..2.0f) { "Rate must be in 0.5..2.0" }
+                require(rate in MIN_SPEECH_RATE..2.0f) { "Rate must be in 0.5..2.0" }
 
                 engine?.stop()
                 activeUtterance = null
@@ -178,29 +178,35 @@ class ExactTtsController
             if (current.index >= current.chunks.size) {
                 activeUtterance = null
                 state = "finished"
-                return
+            } else {
+                speakCurrentChunkLocked(current)
             }
-            val tts =
-                engine ?: run {
+        }
+
+        private fun speakCurrentChunkLocked(current: Job) {
+            val tts = engine
+            if (tts == null) {
+                state = "error"
+                error = "TTS engine unavailable"
+            } else {
+                val languageResult = tts.setLanguage(Locale.forLanguageTag(current.language))
+                if (languageResult == TextToSpeech.LANG_NOT_SUPPORTED ||
+                    languageResult == TextToSpeech.LANG_MISSING_DATA
+                ) {
                     state = "error"
-                    error = "TTS engine unavailable"
-                    return
+                    error = "Language not installed: ${current.language}"
+                } else {
+                    tts.setSpeechRate(current.rate)
+                    val utterance = "${current.generation}:${current.index}:${++nextUtterance}"
+                    activeUtterance = utterance
+                    val speakResult =
+                        tts.speak(current.chunks[current.index], TextToSpeech.QUEUE_FLUSH, null, utterance)
+                    if (speakResult == TextToSpeech.ERROR) {
+                        activeUtterance = null
+                        state = "error"
+                        error = "TTS rejected chunk ${current.index + 1}"
+                    }
                 }
-            val languageResult = tts.setLanguage(Locale.forLanguageTag(current.language))
-            if (languageResult == TextToSpeech.LANG_NOT_SUPPORTED ||
-                languageResult == TextToSpeech.LANG_MISSING_DATA
-            ) {
-                state = "error"
-                error = "Language not installed: ${current.language}"
-                return
-            }
-            tts.setSpeechRate(current.rate)
-            val utterance = "${current.generation}:${current.index}:${++nextUtterance}"
-            activeUtterance = utterance
-            if (tts.speak(current.chunks[current.index], TextToSpeech.QUEUE_FLUSH, null, utterance) == TextToSpeech.ERROR) {
-                activeUtterance = null
-                state = "error"
-                error = "TTS rejected chunk ${current.index + 1}"
             }
         }
 
@@ -225,6 +231,7 @@ class ExactTtsController
 
         companion object {
             const val MAX_LENGTH = 160_000
+            private const val MIN_SPEECH_RATE = 0.5f
             private val LANGUAGE_PATTERN = Regex("[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*")
         }
     }

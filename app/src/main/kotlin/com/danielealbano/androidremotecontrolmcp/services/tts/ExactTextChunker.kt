@@ -22,10 +22,10 @@ object ExactTextChunker {
                     boundary--
                 }
                 if (boundary > offset + limit / 2) end = boundary
-                if (end < text.length && end > offset &&
-                    Character.isHighSurrogate(text[end - 1]) && Character.isLowSurrogate(text[end])
-                ) {
-                    end--
+                if (end < text.length && end > offset) {
+                    if (Character.isHighSurrogate(text[end - 1]) && Character.isLowSurrogate(text[end])) {
+                        end--
+                    }
                 }
             }
             if (end <= offset) end = (offset + limit).coerceAtMost(text.length)

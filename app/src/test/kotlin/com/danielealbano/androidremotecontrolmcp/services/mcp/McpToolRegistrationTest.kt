@@ -94,7 +94,10 @@ class McpToolRegistrationTest {
 
         val actual = registered(deviceSlug = DEVICE_SLUG)
 
-        assertEquals(McpIntegrationTestHelper.createSdkServer(deps, DEVICE_SLUG).tools.keys + ttsNames(DEVICE_SLUG), actual)
+        assertEquals(
+            McpIntegrationTestHelper.createSdkServer(deps, DEVICE_SLUG).tools.keys + ttsNames(DEVICE_SLUG),
+            actual,
+        )
         assertTrue(actual.all { it.startsWith(prefix) }, "$actual")
     }
 
