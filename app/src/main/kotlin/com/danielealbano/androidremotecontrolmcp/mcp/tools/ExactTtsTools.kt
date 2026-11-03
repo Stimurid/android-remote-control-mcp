@@ -74,6 +74,8 @@ private fun registerExactTtsSpeak(
     }
 }
 
+}
+
 private fun registerExactTtsControl(
     registrar: LoggedToolRegistrar,
     controller: ExactTtsController,
