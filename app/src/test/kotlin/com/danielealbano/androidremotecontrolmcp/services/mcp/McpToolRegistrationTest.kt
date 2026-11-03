@@ -7,6 +7,8 @@ import com.danielealbano.androidremotecontrolmcp.mcp.tools.McpToolUtils
 import com.danielealbano.androidremotecontrolmcp.services.accessibility.CompactTreeFormatter
 import com.danielealbano.androidremotecontrolmcp.services.accessibility.WebViewNodeMerger
 import com.danielealbano.androidremotecontrolmcp.services.screencapture.ScreenshotRedactor
+import com.danielealbano.androidremotecontrolmcp.services.tts.ExactTtsController
+import io.mockk.mockk
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import io.modelcontextprotocol.kotlin.sdk.server.ServerOptions
 import io.modelcontextprotocol.kotlin.sdk.types.Implementation
@@ -50,6 +52,7 @@ class McpToolRegistrationTest {
                 deps.locationProvider,
             ),
             InboxToolDeps(deps.notificationProvider, deps.sharedContentInbox, deps.ephemeralFileLinkService),
+            mockk<ExactTtsController>(relaxed = true),
         )
 
     /** The tool names [McpToolRegistration.registerAll] puts on a fresh SDK server. */
@@ -82,7 +85,7 @@ class McpToolRegistrationTest {
         val actual = registered()
 
         assertTrue(expected.isNotEmpty())
-        assertEquals(expected, actual)
+        assertEquals(expected + ttsNames(), actual)
     }
 
     @Test
@@ -91,7 +94,10 @@ class McpToolRegistrationTest {
 
         val actual = registered(deviceSlug = DEVICE_SLUG)
 
-        assertEquals(McpIntegrationTestHelper.createSdkServer(deps, DEVICE_SLUG).tools.keys, actual)
+        assertEquals(
+            McpIntegrationTestHelper.createSdkServer(deps, DEVICE_SLUG).tools.keys + ttsNames(DEVICE_SLUG),
+            actual,
+        )
         assertTrue(actual.all { it.startsWith(prefix) }, "$actual")
     }
 
@@ -105,6 +111,11 @@ class McpToolRegistrationTest {
         assertTrue(name in all, "$all")
         assertFalse(name in actual, "$actual")
         assertEquals(all - name, actual)
+    }
+
+    private fun ttsNames(deviceSlug: String = ""): Set<String> {
+        val prefix = McpToolUtils.buildToolNamePrefix(deviceSlug)
+        return setOf("${prefix}tts_speak", "${prefix}tts_control")
     }
 
     private companion object {

@@ -36,6 +36,7 @@ import com.danielealbano.androidremotecontrolmcp.privacy.ner.NerCache
 import com.danielealbano.androidremotecontrolmcp.services.accessibility.ScreenStateSnapshotCache
 import com.danielealbano.androidremotecontrolmcp.services.notifications.McpNotificationListenerService
 import com.danielealbano.androidremotecontrolmcp.services.sharing.EphemeralFileLinkService
+import com.danielealbano.androidremotecontrolmcp.services.tts.ExactTtsController
 import com.danielealbano.androidremotecontrolmcp.services.tunnel.TunnelManager
 import com.danielealbano.androidremotecontrolmcp.ui.MainActivity
 import com.danielealbano.androidremotecontrolmcp.utils.NetworkUtils
@@ -84,6 +85,8 @@ class McpServerService : Service() {
     @Inject lateinit var toolRegistration: McpToolRegistration
 
     @Inject lateinit var inFlightToolCalls: InFlightToolCalls
+
+    @Inject lateinit var exactTtsController: ExactTtsController
 
     @Inject lateinit var listenerRules: McpListenerRules
 
@@ -369,6 +372,7 @@ class McpServerService : Service() {
             Log.w(TAG, "Server start still running after ${START_JOIN_TIMEOUT_MS}ms; proceeding with shutdown")
         }
         screenStateSnapshotCache.clear()
+        exactTtsController.shutdown()
         // Release the Privacy Mode model and clear session-scoped pseudonym/NER caches (never persisted).
         privacyModeManager.shutdown()
         pseudonymStore.clear()

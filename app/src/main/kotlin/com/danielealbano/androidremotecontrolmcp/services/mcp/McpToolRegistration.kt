@@ -7,6 +7,7 @@ import com.danielealbano.androidremotecontrolmcp.mcp.tools.LoggedToolRegistrar
 import com.danielealbano.androidremotecontrolmcp.mcp.tools.ReferenceCountedToolCallIndicator
 import com.danielealbano.androidremotecontrolmcp.mcp.tools.registerAppManagementTools
 import com.danielealbano.androidremotecontrolmcp.mcp.tools.registerCameraTools
+import com.danielealbano.androidremotecontrolmcp.mcp.tools.registerExactTtsTools
 import com.danielealbano.androidremotecontrolmcp.mcp.tools.registerFileTools
 import com.danielealbano.androidremotecontrolmcp.mcp.tools.registerGestureTools
 import com.danielealbano.androidremotecontrolmcp.mcp.tools.registerIntentTools
@@ -20,6 +21,7 @@ import com.danielealbano.androidremotecontrolmcp.mcp.tools.registerTextInputTool
 import com.danielealbano.androidremotecontrolmcp.mcp.tools.registerTouchActionTools
 import com.danielealbano.androidremotecontrolmcp.mcp.tools.registerUtilityTools
 import com.danielealbano.androidremotecontrolmcp.services.accessibility.AccessibilityToolCallIndicator
+import com.danielealbano.androidremotecontrolmcp.services.tts.ExactTtsController
 import io.modelcontextprotocol.kotlin.sdk.server.Server
 import javax.inject.Inject
 
@@ -37,6 +39,7 @@ class McpToolRegistration
         private val privacy: PrivacyToolDeps,
         private val device: DeviceToolDeps,
         private val inbox: InboxToolDeps,
+        private val exactTtsController: ExactTtsController,
     ) {
         /** Registers every MCP tool on [server]; [currentBaseUrl] is the URL the sharing tools hand out. */
         fun registerAll(
@@ -62,6 +65,7 @@ class McpToolRegistration
             registerAppManagementTools(registrar, d.appManager, privacy.privacyToolGate, toolNamePrefix, perms)
             registerCameraTools(registrar, d.cameraProvider, d.fileOperationProvider, toolNamePrefix, perms)
             registerIntentTools(registrar, d.intentDispatcher, toolNamePrefix, perms)
+            registerExactTtsTools(registrar, exactTtsController, toolNamePrefix, perms)
             registerNotificationTools(
                 registrar,
                 inbox.notificationProvider,
